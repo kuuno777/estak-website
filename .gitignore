@@ -1,0 +1,15 @@
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+.idea/
+.vscode/
+
+# Logs / temp
+*.log
+.cache/
+tmp/
+
+# Node (only if tooling is added later — site itself needs no build)
+node_modules/
