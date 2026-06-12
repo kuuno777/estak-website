@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ESTAK — Tactical operations platform</title>
-  <meta name="description" content="ESTAK — one shared tactical picture. Live map, resilient low-bandwidth voice, video, APP-6D symbology, mission planning and TAK / CoT interoperability.">
+  <meta name="description" content="ESTAK — one shared tactical picture. Live map, resilient low-bandwidth voice, video, AI force-on-force training, APP-6D symbology, mission planning and TAK / CoT interoperability.">
   <meta name="theme-color" content="#258cf4">
 
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
@@ -74,23 +74,25 @@
       padding:34px 24px 40px;
     }
 
-    /* the rollup-banner stage: labels radiate from the hexagon edges */
+    /* the rollup-banner stage: labels radiate from the heptagon edges.
+       Rows 2-4 split the heptagon so row centres land on the side-chip
+       midpoints (22.3% and 58.5% of its height). */
     .stage{
       display:grid;
       grid-template-columns:minmax(150px, 215px) clamp(290px, 42vw, 470px) minmax(150px, 215px);
-      grid-template-rows:auto 1fr 1fr auto;
+      grid-template-rows:auto 44.6fr 27.8fr 27.6fr auto;
       column-gap:clamp(20px, 3.4vw, 46px);
-      row-gap:14px;
+      row-gap:0;
       align-items:center;
       justify-content:center;
       width:100%;
       max-width:1060px;
     }
 
-    .hexwrap{ grid-column:2; grid-row:2 / span 2; position:relative; }
+    .hexwrap{ grid-column:2; grid-row:2 / span 3; position:relative; }
     .hexwrap > svg{ width:100%; height:auto; overflow:visible; }
 
-    /* ---- hexagon panel + segmented edges ---- */
+    /* ---- heptagon panel + segmented edges ---- */
     .hex-fill{
       fill:var(--card);
       filter:drop-shadow(0 2px 3px rgba(19,32,46,.05)) drop-shadow(0 18px 38px rgba(19,32,46,.09));
@@ -107,17 +109,19 @@
       animation:draw .8s cubic-bezier(.4,0,.2,1) forwards;
       transition:stroke .25s ease, stroke-width .25s ease;
     }
-    #seg-top{ animation-delay:.10s } #seg-ur{ animation-delay:.22s }
-    #seg-lr{ animation-delay:.34s } #seg-bottom{ animation-delay:.46s }
-    #seg-ll{ animation-delay:.58s } #seg-ul{ animation-delay:.70s }
+    #seg-top{ animation-delay:.10s } #seg-ur{ animation-delay:.21s }
+    #seg-r{ animation-delay:.32s }   #seg-br{ animation-delay:.43s }
+    #seg-bl{ animation-delay:.54s }  #seg-l{ animation-delay:.65s }
+    #seg-ul{ animation-delay:.76s }
     @keyframes draw{ to{ stroke-dashoffset:0 } }
 
     /* chips keep their SVG translate() — fade with opacity only */
     .chip{ opacity:0; animation:fade .55s ease forwards; }
     @keyframes fade{ to{ opacity:1 } }
-    #chip-top{ animation-delay:.55s } #chip-ur{ animation-delay:.65s }
-    #chip-lr{ animation-delay:.75s } #chip-bottom{ animation-delay:.85s }
-    #chip-ll{ animation-delay:.95s } #chip-ul{ animation-delay:1.05s }
+    #chip-top{ animation-delay:.55s } #chip-ur{ animation-delay:.63s }
+    #chip-r{ animation-delay:.71s }   #chip-br{ animation-delay:.79s }
+    #chip-bl{ animation-delay:.87s }  #chip-l{ animation-delay:.95s }
+    #chip-ul{ animation-delay:1.03s }
     .chip .chip-hex{
       fill:#fff; stroke:var(--blue); stroke-width:2; stroke-linejoin:round;
       transition:stroke .25s ease, fill .25s ease;
@@ -132,16 +136,19 @@
       opacity:0; animation:rise .55s ease forwards;
       max-width:230px;
     }
-    .cap--map{    grid-column:2; grid-row:1; justify-self:center; text-align:center; animation-delay:.60s; }
-    .cap--voice{  grid-column:3; grid-row:2; justify-self:start;  animation-delay:.70s; }
-    .cap--video{  grid-column:3; grid-row:3; justify-self:start;  animation-delay:.80s; }
-    .cap--sym{    grid-column:2; grid-row:4; justify-self:center; text-align:center; animation-delay:.90s; }
-    .cap--plan{   grid-column:1; grid-row:3; justify-self:end; text-align:right; animation-delay:1.00s; }
-    .cap--tak{    grid-column:1; grid-row:2; justify-self:end; text-align:right; animation-delay:1.10s; }
-    /* diagonal edge midpoints sit at 29%/71% of the hexagon height, not the
-       row centres (25%/75%) — nudge the side labels onto their chips */
-    .cap--voice, .cap--tak{ margin-top:34px; }
-    .cap--video, .cap--plan{ margin-bottom:34px; }
+    .cap--map{   grid-column:2; grid-row:1; justify-self:center; text-align:center; margin-bottom:14px; animation-delay:.60s; }
+    .cap--voice{ grid-column:3; grid-row:2; justify-self:start;  animation-delay:.70s; }
+    .cap--video{ grid-column:3; grid-row:3; justify-self:start;  animation-delay:.80s; }
+    .cap--plan{  grid-column:1; grid-row:3; justify-self:end; text-align:right; animation-delay:1.10s; }
+    .cap--tak{   grid-column:1; grid-row:2; justify-self:end; text-align:right; animation-delay:1.20s; }
+    /* the two bottom-facing edges: labels sit side by side beneath the
+       heptagon, centred under their chips (32% / 68% of its width) */
+    .cap--sym, .cap--ai{
+      grid-column:2; grid-row:5;
+      width:36%; max-width:none; text-align:center; margin-top:8px;
+    }
+    .cap--sym{ justify-self:start; margin-left:14%;  animation-delay:1.00s; }
+    .cap--ai{  justify-self:end;   margin-right:14%; animation-delay:.90s; }
 
     .cap h2{
       font-size:15.5px; font-weight:600; color:var(--ink); letter-spacing:.1px; line-height:1.25;
@@ -150,20 +157,22 @@
     .cap p{ margin-top:3px; font-size:12.5px; font-weight:300; color:var(--muted); line-height:1.4; }
     .cap .m-ic{ display:none; }
 
-    /* hover/focus a label → light up its hexagon edge + chip (pure CSS) */
+    /* hover/focus a label → light up its heptagon edge + chip (pure CSS) */
     .stage:has(.cap--map:hover)   #seg-top,
     .stage:has(.cap--voice:hover) #seg-ur,
-    .stage:has(.cap--video:hover) #seg-lr,
-    .stage:has(.cap--sym:hover)   #seg-bottom,
-    .stage:has(.cap--plan:hover)  #seg-ll,
+    .stage:has(.cap--video:hover) #seg-r,
+    .stage:has(.cap--ai:hover)    #seg-br,
+    .stage:has(.cap--sym:hover)   #seg-bl,
+    .stage:has(.cap--plan:hover)  #seg-l,
     .stage:has(.cap--tak:hover)   #seg-ul{
       stroke:var(--blue-deep); stroke-width:7;
     }
     .stage:has(.cap--map:hover)   #chip-top .chip-hex,
     .stage:has(.cap--voice:hover) #chip-ur .chip-hex,
-    .stage:has(.cap--video:hover) #chip-lr .chip-hex,
-    .stage:has(.cap--sym:hover)   #chip-bottom .chip-hex,
-    .stage:has(.cap--plan:hover)  #chip-ll .chip-hex,
+    .stage:has(.cap--video:hover) #chip-r .chip-hex,
+    .stage:has(.cap--ai:hover)    #chip-br .chip-hex,
+    .stage:has(.cap--sym:hover)   #chip-bl .chip-hex,
+    .stage:has(.cap--plan:hover)  #chip-l .chip-hex,
     .stage:has(.cap--tak:hover)   #chip-ul .chip-hex{
       stroke:var(--blue-deep);
     }
@@ -211,9 +220,8 @@
         border-bottom:1px solid var(--line);
       }
       .cap--map{ order:1; margin-top:26px; border-top:1px solid var(--line); }
-      .cap--voice{ order:2 } .cap--video{ order:3 }
-      .cap--sym{ order:4 }   .cap--plan{ order:5 } .cap--tak{ order:6 }
-      .cap--sym, .cap--plan, .cap--tak, .cap--map{ text-align:left; }
+      .cap--voice{ order:2 } .cap--video{ order:3 } .cap--ai{ order:4 }
+      .cap--sym{ order:5 }   .cap--plan{ order:6 }  .cap--tak{ order:7 }
       .cap .m-ic{
         display:block; flex:0 0 auto; width:20px; height:20px; margin-top:2px;
         color:var(--blue-deep);
@@ -248,8 +256,8 @@
     <div class="stage">
 
       <div class="hexwrap">
-        <svg viewBox="55 42 410 396" role="img"
-             aria-label="ESTAK — tactical operations platform. A hexagon with the ESTAK mark at its centre and one core capability on each of its six edges.">
+        <svg viewBox="50 44 420 400" role="img"
+             aria-label="ESTAK — tactical operations platform. A heptagon with the ESTAK mark at its centre and one core capability on each of its seven edges.">
           <defs>
             <symbol id="i-map" viewBox="0 0 24 24">
               <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -264,6 +272,12 @@
             <symbol id="i-video" viewBox="0 0 24 24">
               <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="6" width="13" height="12" rx="2.5"/><path d="M16 10.5l5-3v9l-5-3z"/>
+              </g>
+            </symbol>
+            <symbol id="i-ai" viewBox="0 0 24 24">
+              <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="6.5"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3"/>
+                <circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/>
               </g>
             </symbol>
             <symbol id="i-sym" viewBox="0 0 24 24">
@@ -283,43 +297,48 @@
             </symbol>
           </defs>
 
-          <!-- white panel + faint outline -->
-          <polygon class="hex-fill"  points="450,240 355,404.5 165,404.5 70,240 165,75.5 355,75.5"/>
-          <polygon class="hex-ghost" points="450,240 355,404.5 165,404.5 70,240 165,75.5 355,75.5"/>
+          <!-- white panel + faint outline (regular heptagon, flat top, vertex down) -->
+          <polygon class="hex-fill"  points="342.44,68.82 445.24,197.72 408.55,358.46 260,430 111.45,358.46 74.76,197.72 177.56,68.82"/>
+          <polygon class="hex-ghost" points="342.44,68.82 445.24,197.72 408.55,358.46 260,430 111.45,358.46 74.76,197.72 177.56,68.82"/>
 
-          <!-- segmented edges (one per capability) -->
+          <!-- segmented edges (one per capability, clockwise from top) -->
           <g aria-hidden="true">
-            <path id="seg-top"    class="seg" pathLength="100" d="M180,75.5 L340,75.5"/>
-            <path id="seg-ur"     class="seg" pathLength="100" d="M362.6,88.66 L442.4,226.84"/>
-            <path id="seg-lr"     class="seg" pathLength="100" d="M442.4,253.16 L362.6,391.34"/>
-            <path id="seg-bottom" class="seg" pathLength="100" d="M340,404.5 L180,404.5"/>
-            <path id="seg-ll"     class="seg" pathLength="100" d="M157.4,391.34 L77.6,253.16"/>
-            <path id="seg-ul"     class="seg" pathLength="100" d="M77.6,226.84 L157.4,88.66"/>
+            <path id="seg-top" class="seg" pathLength="100" d="M190.75,68.82 L329.25,68.82"/>
+            <path id="seg-ur"  class="seg" pathLength="100" d="M350.66,79.13 L437.02,187.41"/>
+            <path id="seg-r"   class="seg" pathLength="100" d="M442.31,210.58 L411.49,345.60"/>
+            <path id="seg-br"  class="seg" pathLength="100" d="M396.67,364.18 L271.88,424.28"/>
+            <path id="seg-bl"  class="seg" pathLength="100" d="M248.12,424.28 L123.33,364.18"/>
+            <path id="seg-l"   class="seg" pathLength="100" d="M108.51,345.60 L77.70,210.58"/>
+            <path id="seg-ul"  class="seg" pathLength="100" d="M82.98,187.41 L169.34,79.13"/>
           </g>
 
           <!-- edge chips: capability icons sitting on the edge midpoints -->
           <g aria-hidden="true">
-            <g id="chip-top" class="chip" transform="translate(260,75.5)">
+            <g id="chip-top" class="chip" transform="translate(260,68.82)">
               <polygon class="chip-hex" points="21,0 10.5,18.2 -10.5,18.2 -21,0 -10.5,-18.2 10.5,-18.2"/>
               <use class="chip-ic" href="#i-map" x="-11" y="-11" width="22" height="22"/>
             </g>
-            <g id="chip-ur" class="chip" transform="translate(402.5,157.75)">
+            <g id="chip-ur" class="chip" transform="translate(393.84,133.27)">
               <polygon class="chip-hex" points="21,0 10.5,18.2 -10.5,18.2 -21,0 -10.5,-18.2 10.5,-18.2"/>
               <use class="chip-ic" href="#i-voice" x="-11" y="-11" width="22" height="22"/>
             </g>
-            <g id="chip-lr" class="chip" transform="translate(402.5,322.25)">
+            <g id="chip-r" class="chip" transform="translate(426.9,278.09)">
               <polygon class="chip-hex" points="21,0 10.5,18.2 -10.5,18.2 -21,0 -10.5,-18.2 10.5,-18.2"/>
               <use class="chip-ic" href="#i-video" x="-11" y="-11" width="22" height="22"/>
             </g>
-            <g id="chip-bottom" class="chip" transform="translate(260,404.5)">
+            <g id="chip-br" class="chip" transform="translate(334.27,394.23)">
+              <polygon class="chip-hex" points="21,0 10.5,18.2 -10.5,18.2 -21,0 -10.5,-18.2 10.5,-18.2"/>
+              <use class="chip-ic" href="#i-ai" x="-11" y="-11" width="22" height="22"/>
+            </g>
+            <g id="chip-bl" class="chip" transform="translate(185.73,394.23)">
               <polygon class="chip-hex" points="21,0 10.5,18.2 -10.5,18.2 -21,0 -10.5,-18.2 10.5,-18.2"/>
               <use class="chip-ic" href="#i-sym" x="-11" y="-11" width="22" height="22"/>
             </g>
-            <g id="chip-ll" class="chip" transform="translate(117.5,322.25)">
+            <g id="chip-l" class="chip" transform="translate(93.1,278.09)">
               <polygon class="chip-hex" points="21,0 10.5,18.2 -10.5,18.2 -21,0 -10.5,-18.2 10.5,-18.2"/>
               <use class="chip-ic" href="#i-plan" x="-11" y="-11" width="22" height="22"/>
             </g>
-            <g id="chip-ul" class="chip" transform="translate(117.5,157.75)">
+            <g id="chip-ul" class="chip" transform="translate(126.16,133.27)">
               <polygon class="chip-hex" points="21,0 10.5,18.2 -10.5,18.2 -21,0 -10.5,-18.2 10.5,-18.2"/>
               <use class="chip-ic" href="#i-tak" x="-11" y="-11" width="22" height="22"/>
             </g>
@@ -353,6 +372,11 @@
       <article class="cap cap--video">
         <svg class="m-ic" aria-hidden="true"><use href="#i-video"/></svg>
         <div><h2>Video Streaming</h2><p>Live feeds from drones &amp; the field</p></div>
+      </article>
+
+      <article class="cap cap--ai">
+        <svg class="m-ic" aria-hidden="true"><use href="#i-ai"/></svg>
+        <div><h2>Live AI Training</h2><p>Force-on-force against an AI OPFOR</p></div>
       </article>
 
       <article class="cap cap--sym">
