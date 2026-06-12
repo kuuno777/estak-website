@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ESTAK — Tactical operations platform</title>
+  <meta name="description" content="ESTAK — one shared tactical picture. Live map, resilient low-bandwidth voice, video, APP-6D symbology, mission planning and TAK / CoT interoperability.">
+  <meta name="theme-color" content="#258cf4">
+
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png">
+  <link rel="apple-touch-icon" href="assets/icon-192.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --blue:#258cf4;
+      --blue-deep:#185fa5;
+      --blue-edge:#0c447c;
+      --blue-ink:#1668c4;
+      --ink:#13202e;
+      --body:#46505b;
+      --muted:#7d8893;
+      --paper:#f5f5f2;
+      --card:#ffffff;
+      --line:#e7e8e6;
+      --font:'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    }
+
+    *{ box-sizing:border-box; margin:0; padding:0; }
+
+    body{
+      font-family:var(--font);
+      color:var(--body);
+      background:var(--paper);
+      line-height:1.5;
+      -webkit-font-smoothing:antialiased;
+      text-rendering:optimizeLegibility;
+      min-height:100svh;
+      display:flex;
+      flex-direction:column;
+      overflow-x:hidden;
+    }
+
+    a{ color:inherit; text-decoration:none; }
+    svg{ display:block; }
+
+    :focus-visible{ outline:2.5px solid var(--blue); outline-offset:3px; border-radius:6px; }
+
+    .skip{
+      position:absolute; left:-999px; top:0; z-index:20;
+      background:var(--ink); color:#fff; padding:10px 16px; border-radius:0 0 8px 0; font-weight:600;
+    }
+    .skip:focus{ left:0; }
+
+    /* =================== header =================== */
+    .site-header{
+      display:flex; align-items:center; justify-content:center;
+      padding:26px 28px 0;
+    }
+    .brand{ display:inline-flex; align-items:center; gap:11px; }
+    .brand .mark{ width:24px; height:auto; }
+    .brand .name{ font-size:18px; font-weight:600; color:var(--ink); letter-spacing:.3px; }
+    .brand .name span{ font-weight:300; color:var(--muted); }
+
+    /* =================== main =================== */
+    main{
+      flex:1;
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      padding:34px 24px 40px;
+    }
+
+    /* the rollup-banner stage: labels radiate from the hexagon edges */
+    .stage{
+      display:grid;
+      grid-template-columns:minmax(150px, 215px) clamp(290px, 42vw, 470px) minmax(150px, 215px);
+      grid-template-rows:auto 1fr 1fr auto;
+      column-gap:clamp(20px, 3.4vw, 46px);
+      row-gap:14px;
+      align-items:center;
+      justify-content:center;
+      width:100%;
+      max-width:1060px;
+    }
+
+    .hexwrap{ grid-column:2; grid-row:2 / span 2; position:relative; }
+    .hexwrap > svg{ width:100%; height:auto; overflow:visible; }
+
+    /* ---- hexagon panel + segmented edges ---- */
+    .hex-fill{
+      fill:var(--card);
+      filter:drop-shadow(0 2px 3px rgba(19,32,46,.05)) drop-shadow(0 18px 38px rgba(19,32,46,.09));
+    }
+    .hex-ghost{ fill:none; stroke:var(--line); stroke-width:1; }
+
+    .seg{
+      fill:none;
+      stroke:var(--blue);
+      stroke-width:5;
+      stroke-linecap:round;
+      stroke-dasharray:100;
+      stroke-dashoffset:100;
+      animation:draw .8s cubic-bezier(.4,0,.2,1) forwards;
+      transition:stroke .25s ease, stroke-width .25s ease;
+    }
+    #seg-top{ animation-delay:.10s } #seg-ur{ animation-delay:.22s }
+    #seg-lr{ animation-delay:.34s } #seg-bottom{ animation-delay:.46s }
+    #seg-ll{ animation-delay:.58s } #seg-ul{ animation-delay:.70s }
+    @keyframes draw{ to{ stroke-dashoffset:0 } }
+
+    /* chips keep their SVG translate() — fade with opacity only */
+    .chip{ opacity:0; animation:fade .55s ease forwards; }
+    @keyframes fade{ to{ opacity:1 } }
+    #chip-top{ animation-delay:.55s } #chip-ur{ animation-delay:.65s }
+    #chip-lr{ animation-delay:.75s } #chip-bottom{ animation-delay:.85s }
+    #chip-ll{ animation-delay:.95s } #chip-ul{ animation-delay:1.05s }
+    .chip .chip-hex{
+      fill:#fff; stroke:var(--blue); stroke-width:2; stroke-linejoin:round;
+      transition:stroke .25s ease, fill .25s ease;
+    }
+    .chip .chip-ic{ color:var(--blue-deep); transition:color .25s ease; }
+
+    .hex-center{ opacity:0; animation:rise .7s ease .45s forwards; }
+    @keyframes rise{ from{ opacity:0; transform:translateY(7px) } to{ opacity:1; transform:none } }
+
+    /* ---- capability labels ---- */
+    .cap{
+      opacity:0; animation:rise .55s ease forwards;
+      max-width:230px;
+    }
+    .cap--map{    grid-column:2; grid-row:1; justify-self:center; text-align:center; animation-delay:.60s; }
+    .cap--voice{  grid-column:3; grid-row:2; justify-self:start;  animation-delay:.70s; }
+    .cap--video{  grid-column:3; grid-row:3; justify-self:start;  animation-delay:.80s; }
+    .cap--sym{    grid-column:2; grid-row:4; justify-self:center; text-align:center; animation-delay:.90s; }
+    .cap--plan{   grid-column:1; grid-row:3; justify-self:end; text-align:right; animation-delay:1.00s; }
+    .cap--tak{    grid-column:1; grid-row:2; justify-self:end; text-align:right; animation-delay:1.10s; }
+    /* diagonal edge midpoints sit at 29%/71% of the hexagon height, not the
+       row centres (25%/75%) — nudge the side labels onto their chips */
+    .cap--voice, .cap--tak{ margin-top:34px; }
+    .cap--video, .cap--plan{ margin-bottom:34px; }
+
+    .cap h2{
+      font-size:15.5px; font-weight:600; color:var(--ink); letter-spacing:.1px; line-height:1.25;
+      transition:color .25s ease;
+    }
+    .cap p{ margin-top:3px; font-size:12.5px; font-weight:300; color:var(--muted); line-height:1.4; }
+    .cap .m-ic{ display:none; }
+
+    /* hover/focus a label → light up its hexagon edge + chip (pure CSS) */
+    .stage:has(.cap--map:hover)   #seg-top,
+    .stage:has(.cap--voice:hover) #seg-ur,
+    .stage:has(.cap--video:hover) #seg-lr,
+    .stage:has(.cap--sym:hover)   #seg-bottom,
+    .stage:has(.cap--plan:hover)  #seg-ll,
+    .stage:has(.cap--tak:hover)   #seg-ul{
+      stroke:var(--blue-deep); stroke-width:7;
+    }
+    .stage:has(.cap--map:hover)   #chip-top .chip-hex,
+    .stage:has(.cap--voice:hover) #chip-ur .chip-hex,
+    .stage:has(.cap--video:hover) #chip-lr .chip-hex,
+    .stage:has(.cap--sym:hover)   #chip-bottom .chip-hex,
+    .stage:has(.cap--plan:hover)  #chip-ll .chip-hex,
+    .stage:has(.cap--tak:hover)   #chip-ul .chip-hex{
+      stroke:var(--blue-deep);
+    }
+    .cap:hover h2{ color:var(--blue-ink); }
+
+    /* =================== contact =================== */
+    .contact{
+      margin-top:clamp(26px, 4vh, 44px);
+      display:inline-flex; align-items:center; gap:10px;
+      background:var(--blue); color:#fff;
+      font-size:16px; font-weight:600; letter-spacing:.2px;
+      padding:13px 26px; border-radius:999px;
+      box-shadow:0 1px 2px rgba(19,32,46,.08), 0 10px 26px rgba(37,140,244,.32);
+      transition:background .25s ease, transform .25s ease, box-shadow .25s ease;
+    }
+    .contact:hover{
+      background:var(--blue-ink); transform:translateY(-1px);
+      box-shadow:0 1px 2px rgba(19,32,46,.08), 0 14px 30px rgba(37,140,244,.4);
+    }
+    .contact svg{ width:17px; height:17px; }
+
+    /* =================== footer =================== */
+    .site-footer{
+      padding:22px 28px 26px;
+      text-align:center;
+      font-size:13.5px; font-weight:300; color:var(--muted);
+    }
+    .site-footer b{ font-weight:500; color:var(--body); }
+
+    /* =================== mobile reflow =================== */
+    @media (max-width: 880px){
+      .stage{
+        grid-template-columns:minmax(0, 420px);
+        grid-template-rows:none;
+        row-gap:0;
+        justify-items:center;
+      }
+      .hexwrap{ grid-column:1; grid-row:auto; width:min(86vw, 360px); order:0; }
+      .cap{
+        grid-column:1; grid-row:auto;
+        justify-self:stretch; text-align:left;
+        max-width:330px; width:100%; margin:0 auto;
+        display:flex; align-items:flex-start; gap:12px;
+        padding:11px 2px;
+        border-bottom:1px solid var(--line);
+      }
+      .cap--map{ order:1; margin-top:26px; border-top:1px solid var(--line); }
+      .cap--voice{ order:2 } .cap--video{ order:3 }
+      .cap--sym{ order:4 }   .cap--plan{ order:5 } .cap--tak{ order:6 }
+      .cap--sym, .cap--plan, .cap--tak, .cap--map{ text-align:left; }
+      .cap .m-ic{
+        display:block; flex:0 0 auto; width:20px; height:20px; margin-top:2px;
+        color:var(--blue-deep);
+      }
+      .cap h2{ font-size:15px; }
+      .cap p{ font-size:12.5px; }
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      .seg{ animation:none; stroke-dashoffset:0; }
+      .chip, .cap, .hex-center{ animation:none; opacity:1; }
+      .contact{ transition:none; }
+      .contact:hover{ transform:none; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <a class="brand" href="https://www.estak.ee/" aria-label="ESTAK OÜ home">
+      <svg class="mark" viewBox="0 0 68 84" aria-hidden="true">
+        <path d="M34,3 C18,3 6,15 6,31 C6,53 34,81 34,81 C34,81 62,53 62,31 C62,15 50,3 34,3 Z" fill="#185fa5" stroke="#0c447c" stroke-width="2.5" stroke-linejoin="round"/>
+        <circle cx="34" cy="30" r="18" fill="#e6f1fb" stroke="#185fa5" stroke-width="1.5"/>
+        <g transform="translate(34,30) scale(1.15)" fill="#185fa5"><circle cx="0" cy="-5" r="4.5"/><path d="M-9,8 C-9,1 -5,-1 0,-1 C5,-1 9,1 9,8 Z"/></g>
+      </svg>
+      <span class="name">ESTAK <span>OÜ</span></span>
+    </a>
+  </header>
+
+  <main id="main">
+    <div class="stage">
+
+      <div class="hexwrap">
+        <svg viewBox="55 42 410 396" role="img"
+             aria-label="ESTAK — tactical operations platform. A hexagon with the ESTAK mark at its centre and one core capability on each of its six edges.">
+          <defs>
+            <symbol id="i-map" viewBox="0 0 24 24">
+              <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 7l6-3 6 3 6-3v14l-6 3-6-3-6 3z"/><path d="M9 4v14M15 7v14"/>
+              </g>
+            </symbol>
+            <symbol id="i-voice" viewBox="0 0 24 24">
+              <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0"/><path d="M12 17.5V21"/>
+              </g>
+            </symbol>
+            <symbol id="i-video" viewBox="0 0 24 24">
+              <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="6" width="13" height="12" rx="2.5"/><path d="M16 10.5l5-3v9l-5-3z"/>
+              </g>
+            </symbol>
+            <symbol id="i-sym" viewBox="0 0 24 24">
+              <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="6" y="6" width="12" height="12" rx="1.5" transform="rotate(45 12 12)"/><path d="M12 9.5v5M9.5 12h5"/>
+              </g>
+            </symbol>
+            <symbol id="i-plan" viewBox="0 0 24 24">
+              <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01"/>
+              </g>
+            </symbol>
+            <symbol id="i-tak" viewBox="0 0 24 24">
+              <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4c2.5 2.2 2.5 13.8 0 16M12 4c-2.5 2.2-2.5 13.8 0 16"/>
+              </g>
+            </symbol>
+          </defs>
+
+          <!-- white panel + faint outline -->
+          <polygon class="hex-fill"  points="450,240 355,404.5 165,404.5 70,240 165,75.5 355,75.5"/>
+          <polygon class="hex-ghost" points="450,240 355,404.5 165,404.5 70,240 165,75.5 355,75.5"/>
+
+          <!-- segmented edges (one per capability) -->
+          <g aria-hidden="true">
+            <path id="seg-top"    class="seg" pathLength="100" d="M180,75.5 L340,75.5"/>
+            <path id="seg-ur"     class="seg" pathLength="100" d="M362.6,88.66 L442.4,226.84"/>
+            <path id="seg-lr"     class="seg" pathLength="100" d="M442.4,253.16 L362.6,391.34"/>
+            <path id="seg-bottom" class="seg" pathLength="100" d="M340,404.5 L180,404.5"/>
+            <path id="seg-ll"     class="seg" pathLength="100" d="M157.4,391.34 L77.6,253.16"/>
+            <path id="seg-ul"     class="seg" pathLength="100" d="M77.6,226.84 L157.4,88.66"/>
+          </g>
+
+          <!-- edge chips: capability icons sitting on the edge midpoints -->
+          <g aria-hidden="true">
+            <g id="chip-top" class="chip" transform="translate(260,75.5)">
+              <polygon class="chip-hex" points="21,0 10.5,18.2 -10.5,18.2 -21,0 -10.5,-18.2 10.5,-18.2"/>
+              <use class="chip-ic" href="#i-map" x="-11" y="-11" width="22" height="22"/>
+            </g>
+            <g id="chip-ur" class="chip" transform="translate(402.5,157.75)">
+              <polygon class="chip-hex" points="21,0 10.5,18.2 -10.5,18.2 -21,0 -10.5,-18.2 10.5,-18.2"/>
+              <use class="chip-ic" href="#i-voice" x="-11" y="-11" width="22" height="22"/>
+            </g>
+            <g id="chip-lr" class="chip" transform="translate(402.5,322.25)">
+              <polygon class="chip-hex" points="21,0 10.5,18.2 -10.5,18.2 -21,0 -10.5,-18.2 10.5,-18.2"/>
+              <use class="chip-ic" href="#i-video" x="-11" y="-11" width="22" height="22"/>
+            </g>
+            <g id="chip-bottom" class="chip" transform="translate(260,404.5)">
+              <polygon class="chip-hex" points="21,0 10.5,18.2 -10.5,18.2 -21,0 -10.5,-18.2 10.5,-18.2"/>
+              <use class="chip-ic" href="#i-sym" x="-11" y="-11" width="22" height="22"/>
+            </g>
+            <g id="chip-ll" class="chip" transform="translate(117.5,322.25)">
+              <polygon class="chip-hex" points="21,0 10.5,18.2 -10.5,18.2 -21,0 -10.5,-18.2 10.5,-18.2"/>
+              <use class="chip-ic" href="#i-plan" x="-11" y="-11" width="22" height="22"/>
+            </g>
+            <g id="chip-ul" class="chip" transform="translate(117.5,157.75)">
+              <polygon class="chip-hex" points="21,0 10.5,18.2 -10.5,18.2 -21,0 -10.5,-18.2 10.5,-18.2"/>
+              <use class="chip-ic" href="#i-tak" x="-11" y="-11" width="22" height="22"/>
+            </g>
+          </g>
+
+          <!-- centre: real persona-pin mark + wordmark -->
+          <g class="hex-center">
+            <g transform="translate(226,116)">
+              <path d="M34,3 C18,3 6,15 6,31 C6,53 34,81 34,81 C34,81 62,53 62,31 C62,15 50,3 34,3 Z" fill="#185fa5" stroke="#0c447c" stroke-width="2.5" stroke-linejoin="round"/>
+              <circle cx="34" cy="30" r="18" fill="#e6f1fb" stroke="#185fa5" stroke-width="1.5"/>
+              <g transform="translate(34,30) scale(1.15)" fill="#185fa5"><circle cx="0" cy="-5" r="4.5"/><path d="M-9,8 C-9,1 -5,-1 0,-1 C5,-1 9,1 9,8 Z"/></g>
+            </g>
+            <text x="263" y="270" text-anchor="middle" font-family="Outfit, system-ui, sans-serif"
+                  font-size="44" font-weight="700" letter-spacing="7" fill="#13202e">ESTAK</text>
+            <text x="261" y="299" text-anchor="middle" font-family="Outfit, system-ui, sans-serif"
+                  font-size="10.5" font-weight="500" letter-spacing="2.6" fill="#7d8893">TACTICAL OPERATIONS PLATFORM</text>
+          </g>
+        </svg>
+      </div>
+
+      <article class="cap cap--map">
+        <svg class="m-ic" aria-hidden="true"><use href="#i-map"/></svg>
+        <div><h2>Live Tactical Map</h2><p>Everyone &amp; everything on one live picture</p></div>
+      </article>
+
+      <article class="cap cap--voice">
+        <svg class="m-ic" aria-hidden="true"><use href="#i-voice"/></svg>
+        <div><h2>Resilient Low-Bandwidth Voice</h2><p>Push-to-talk that survives contested links</p></div>
+      </article>
+
+      <article class="cap cap--video">
+        <svg class="m-ic" aria-hidden="true"><use href="#i-video"/></svg>
+        <div><h2>Video Streaming</h2><p>Live feeds from drones &amp; the field</p></div>
+      </article>
+
+      <article class="cap cap--sym">
+        <svg class="m-ic" aria-hidden="true"><use href="#i-sym"/></svg>
+        <div><h2>APP-6D Symbology</h2><p>Standards-based military symbols</p></div>
+      </article>
+
+      <article class="cap cap--plan">
+        <svg class="m-ic" aria-hidden="true"><use href="#i-plan"/></svg>
+        <div><h2>Mission Planning</h2><p>Tasks, teams &amp; SITREPs</p></div>
+      </article>
+
+      <article class="cap cap--tak">
+        <svg class="m-ic" aria-hidden="true"><use href="#i-tak"/></svg>
+        <div><h2>TAK / CoT Interoperability</h2><p>Bridges ATAK &amp; WinTAK fleets</p></div>
+      </article>
+
+    </div>
+
+    <a class="contact" href="mailto:contact@estak.ee">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3.5 7l8.5 6 8.5-6"/>
+      </svg>
+      contact@estak.ee
+    </a>
+  </main>
+
+  <footer class="site-footer">
+    <b>Kuuno Lotamõis</b> · Estak OÜ
+  </footer>
+</body>
+</html>
